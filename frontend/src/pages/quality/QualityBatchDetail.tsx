@@ -36,7 +36,7 @@ const QualityBatchDetail = () => {
       const data = await qualityApi.getBatch(id!);
       setBatch(data);
       setTraceRecords(data.traceRecords || []);
-      setInspections(data.inspectionsData || []);
+      setInspections((data as any).inspections || data.inspectionsData || []);
       setDeductionRules(data.deductionRules || []);
     } catch (e) {
       console.error(e);

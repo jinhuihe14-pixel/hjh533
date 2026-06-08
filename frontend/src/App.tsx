@@ -22,6 +22,7 @@ import Notifications from './pages/system/Notifications';
 import QualityBatches from './pages/quality/QualityBatches';
 import QualityBatchDetail from './pages/quality/QualityBatchDetail';
 import QualityInspections from './pages/quality/QualityInspections';
+import QualityInspectionDetail from './pages/quality/QualityInspectionDetail';
 import RatingList from './pages/rating/RatingList';
 import RatingDetail from './pages/rating/RatingDetail';
 import RatingConfig from './pages/rating/RatingConfig';
@@ -83,6 +84,7 @@ function App() {
           <Route path="quality/batches" element={<QualityBatches />} />
           <Route path="quality/batches/:id" element={<QualityBatchDetail />} />
           <Route path="quality/inspections" element={<QualityInspections />} />
+          <Route path="quality/inspections/:id" element={<QualityInspectionDetail />} />
           <Route path="rating" element={<RatingList />} />
           <Route path="rating/:id" element={<RatingDetail />} />
           <Route path="rating/config" element={<RatingConfig />} />

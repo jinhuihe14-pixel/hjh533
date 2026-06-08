@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table, Card, Button, Select, Tag, Space, message, Modal, Form, Input } from 'antd';
+import { Table, Card, Button, Select, Tag, Space, message, Modal, Form, Input, Descriptions, Image, Divider } from 'antd';
 import { SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { workorderApi } from '../../services/api';
@@ -40,7 +40,9 @@ const ExceptionList = () => {
   const [severity, setSeverity] = useState<string>('');
   const [handleVisible, setHandleVisible] = useState(false);
   const [resolveVisible, setResolveVisible] = useState(false);
+  const [detailVisible, setDetailVisible] = useState(false);
   const [currentException, setCurrentException] = useState<WorkOrderException | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [handleForm] = Form.useForm();
   const [resolveForm] = Form.useForm();
   const navigate = useNavigate();
@@ -89,6 +91,20 @@ const ExceptionList = () => {
   const openResolve = (record: WorkOrderException) => {
     setCurrentException(record);
     setResolveVisible(true);
+  };
+
+  const openDetail = async (record: WorkOrderException) => {
+    setDetailLoading(true);
+    try {
+      const data = await workorderApi.getException(record.id);
+      setCurrentException(data);
+      setDetailVisible(true);
+    } catch (e) {
+      console.error(e);
+      message.error('加载异常详情失败');
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const handleHandle = async (values: any) => {
@@ -179,7 +195,7 @@ const ExceptionList = () => {
       key: 'actions',
       render: (_: any, record: WorkOrderException) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => {}}>
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openDetail(record)}>
             详情
           </Button>
           {canHandle && record.status === 'pending' && (
@@ -318,6 +334,124 @@ const ExceptionList = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="异常详情"
+        open={detailVisible}
+        onCancel={() => setDetailVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setDetailVisible(false)}>
+            关闭
+          </Button>
+        ]}
+        width={600}
+        destroyOnClose
+      >
+        {currentException && (
+          <div style={{ position: 'relative' }}>
+            {detailLoading && <div style={{ textAlign: 'center', padding: 20 }}>加载中...</div>}
+            
+            <Space style={{ marginBottom: 16 }}>
+              <Tag color={exceptionSeverityMap[currentException.severity]?.color || 'default'}>
+                {exceptionSeverityMap[currentException.severity]?.text || currentException.severity}
+              </Tag>
+              <Tag color={exceptionStatusMap[currentException.status]?.color || 'default'}>
+                {exceptionStatusMap[currentException.status]?.text || currentException.status}
+              </Tag>
+              <Tag color="blue">
+                {exceptionTypeMap[currentException.type] || currentException.type}
+              </Tag>
+            </Space>
+
+            <Divider orientation="left" style={{ margin: '8px 0' }}>基本信息</Divider>
+            <Descriptions column={1} size="small" bordered>
+              <Descriptions.Item label="异常ID">
+                <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{currentException.id}</span>
+              </Descriptions.Item>
+              <Descriptions.Item label="关联工单">
+                <a onClick={() => {
+                  setDetailVisible(false);
+                  navigate(`/workorder/${currentException.workOrderId}`);
+                }}>
+                  {(currentException as any).workOrder?.workOrderNo || currentException.workOrderId || '查看'}
+                </a>
+              </Descriptions.Item>
+              <Descriptions.Item label="异常类型">
+                {exceptionTypeMap[currentException.type] || currentException.type}
+              </Descriptions.Item>
+              <Descriptions.Item label="严重程度">
+                {exceptionSeverityMap[currentException.severity]?.text || currentException.severity}
+              </Descriptions.Item>
+              <Descriptions.Item label="上报人">
+                {currentException.reporterName || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="上报时间">
+                {formatDateTime(currentException.createdAt)}
+              </Descriptions.Item>
+              <Descriptions.Item label="当前状态">
+                {exceptionStatusMap[currentException.status]?.text || currentException.status}
+              </Descriptions.Item>
+            </Descriptions>
+
+            <Divider orientation="left" style={{ margin: '16px 0 8px 0' }}>异常描述</Divider>
+            <p style={{ color: '#333', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+              {currentException.description || '暂无描述'}
+            </p>
+
+            {currentException.handlerName && (
+              <>
+                <Divider orientation="left" style={{ margin: '16px 0 8px 0' }}>处理信息</Divider>
+                <Descriptions column={1} size="small" bordered>
+                  <Descriptions.Item label="处理人">
+                    {currentException.handlerName}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="处理说明">
+                    {currentException.handlerRemark || '-'}
+                  </Descriptions.Item>
+                  {currentException.handledAt && (
+                    <Descriptions.Item label="处理时间">
+                      {formatDateTime(currentException.handledAt)}
+                    </Descriptions.Item>
+                  )}
+                </Descriptions>
+              </>
+            )}
+
+            {currentException.resolution && (
+              <>
+                <Divider orientation="left" style={{ margin: '16px 0 8px 0' }}>解决方案</Divider>
+                <p style={{ color: '#333', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                  {currentException.resolution}
+                </p>
+                {currentException.resolvedAt && (
+                  <p style={{ color: '#999', fontSize: 12, marginTop: 8 }}>
+                    解决时间：{formatDateTime(currentException.resolvedAt)}
+                  </p>
+                )}
+              </>
+            )}
+
+            {currentException.photos && currentException.photos.length > 0 && (
+              <>
+                <Divider orientation="left" style={{ margin: '16px 0 8px 0' }}>现场照片</Divider>
+                <Image.PreviewGroup>
+                  <Space wrap>
+                    {currentException.photos.map((img: string, index: number) => (
+                      <Image
+                        key={index}
+                        width={100}
+                        height={100}
+                        src={img}
+                        style={{ objectFit: 'cover', borderRadius: 4 }}
+                      />
+                    ))}
+                  </Space>
+                </Image.PreviewGroup>
+              </>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );

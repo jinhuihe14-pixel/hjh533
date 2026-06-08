@@ -425,6 +425,169 @@ router.post('/rework-orders/:id/complete', (req: AuthRequest, res) => {
   res.json(success(rework, '返工已完成'));
 });
 
+router.post('/inspections/:id/initiate-rework', (req: AuthRequest, res) => {
+  if (req.user?.role !== 'demander' && req.user?.role !== 'admin') {
+    return res.status(403).json(error(403, '无权限发起返工'));
+  }
+
+  const inspection = store.qualityInspections.find(i => i.id === req.params.id);
+
+  if (!inspection) {
+    return res.status(404).json(error(404, '质检单不存在'));
+  }
+
+  if (inspection.result !== 'fail') {
+    return res.status(400).json(error(400, '仅不合格质检单可发起返工'));
+  }
+
+  if (inspection.reworkOrderId) {
+    return res.status(400).json(error(400, '该质检单已存在返工单'));
+  }
+
+  const { reason, quantity, remark } = req.body;
+
+  const batch = store.qualityBatches.find(b => b.id === inspection.batchId);
+  const factory = batch ? store.companies.find(c => c.id === batch.factoryId) : null;
+
+  const newRework = {
+    id: `rework-${Date.now()}`,
+    reworkNo: `RW-${dayjs().format('YYYYMM')}-${String(store.reworkOrders.length + 1).padStart(3, '0')}`,
+    sourceInspectionId: inspection.id,
+    orderId: inspection.orderId,
+    orderType: inspection.orderType,
+    factoryId: batch?.factoryId || '',
+    factoryName: factory?.name || '',
+    quantity: quantity || inspection.failedQuantity,
+    reason: reason || inspection.defectItems.map((d: any) => d.name).join('、') || '质检不合格',
+    status: 'pending' as const,
+    remark,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  store.reworkOrders.unshift(newRework);
+  inspection.reworkOrderId = newRework.id;
+  inspection.disposition = 'rework';
+  inspection.updatedAt = new Date().toISOString();
+
+  if (batch) {
+    const traceRecord = {
+      id: `trace-${Date.now()}-rework`,
+      batchId: batch.id,
+      traceCode: batch.traceCode,
+      node: 'rework',
+      nodeName: '返工处理',
+      operatorId: req.user!.id,
+      operatorName: req.user!.name,
+      timestamp: new Date().toISOString(),
+      description: `因质检不合格发起返工，返工单号: ${newRework.reworkNo}`,
+      data: { reworkNo: newRework.reworkNo, reason, quantity }
+    };
+    store.traceRecords.unshift(traceRecord);
+  }
+
+  if (batch?.factoryId) {
+    const factoryUsers = store.users.filter(u => u.companyId === batch.factoryId && u.role === 'factory');
+    factoryUsers.forEach(u => {
+      addNotification({
+        userId: u.id,
+        type: 'warning',
+        title: '返工工单通知',
+        content: `${batch?.partName} 质检不合格，已生成返工工单 ${newRework.reworkNo}`,
+        relatedId: newRework.id,
+        relatedType: 'rework_order'
+      });
+    });
+  }
+
+  addOperationLog({
+    userId: req.user!.id,
+    userName: req.user!.name,
+    action: '发起返工',
+    module: '质量管理',
+    targetId: newRework.id,
+    targetType: 'rework_order',
+    detail: `基于质检单 ${inspection.inspectionNo} 发起返工 ${newRework.reworkNo}`,
+    ip: req.ip
+  });
+
+  res.json(success(newRework, '返工单已创建'));
+});
+
+router.post('/inspections/:id/initiate-return', (req: AuthRequest, res) => {
+  if (req.user?.role !== 'demander' && req.user?.role !== 'admin') {
+    return res.status(403).json(error(403, '无权限发起退货'));
+  }
+
+  const inspection = store.qualityInspections.find(i => i.id === req.params.id);
+
+  if (!inspection) {
+    return res.status(404).json(error(404, '质检单不存在'));
+  }
+
+  if (inspection.result !== 'fail') {
+    return res.status(400).json(error(400, '仅不合格质检单可发起退货'));
+  }
+
+  if (inspection.disposition === 'return') {
+    return res.status(400).json(error(400, '该质检单已发起退货'));
+  }
+
+  const { reason, quantity, remark } = req.body;
+
+  const batch = store.qualityBatches.find(b => b.id === inspection.batchId);
+
+  const returnInfo = {
+    returnNo: `RT-${dayjs().format('YYYYMM')}-${String(store.reworkOrders.length + 1).padStart(3, '0')}`,
+    sourceInspectionId: inspection.id,
+    orderId: inspection.orderId,
+    orderType: inspection.orderType,
+    batchId: inspection.batchId,
+    supplierId: batch?.supplierId,
+    supplierName: batch?.supplierName,
+    quantity: quantity || inspection.failedQuantity,
+    reason: reason || '质检不合格',
+    status: 'pending',
+    remark,
+    createdBy: req.user!.id,
+    createdByName: req.user!.name,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  inspection.disposition = 'return';
+  inspection.updatedAt = new Date().toISOString();
+
+  if (batch) {
+    const traceRecord = {
+      id: `trace-${Date.now()}-return`,
+      batchId: batch.id,
+      traceCode: batch.traceCode,
+      node: 'return',
+      nodeName: '退货处理',
+      operatorId: req.user!.id,
+      operatorName: req.user!.name,
+      timestamp: new Date().toISOString(),
+      description: `因质检不合格发起退货，退货单号: ${returnInfo.returnNo}，数量: ${returnInfo.quantity}`,
+      data: { returnNo: returnInfo.returnNo, reason, quantity }
+    };
+    store.traceRecords.unshift(traceRecord as any);
+  }
+
+  addOperationLog({
+    userId: req.user!.id,
+    userName: req.user!.name,
+    action: '发起退货',
+    module: '质量管理',
+    targetId: inspection.id,
+    targetType: 'quality_inspection',
+    detail: `基于质检单 ${inspection.inspectionNo} 发起退货 ${returnInfo.returnNo}`,
+    ip: req.ip
+  });
+
+  res.json(success(returnInfo, '退货已发起'));
+});
+
 router.post('/batches/batch-print', (req: AuthRequest, res) => {
   const { batchIds } = req.body;
 

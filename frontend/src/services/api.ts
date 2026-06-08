@@ -185,6 +185,12 @@ export const qualityApi = {
   createInspection: (data: any) => {
     return request.post('/quality/inspections', data);
   },
+  initiateRework: (id: string, data: any) => {
+    return request.post(`/quality/inspections/${id}/initiate-rework`, data);
+  },
+  initiateReturn: (id: string, data: any) => {
+    return request.post(`/quality/inspections/${id}/initiate-return`, data);
+  },
   getReworkOrders: (params?: any) => {
     return request.get<any, PageResult<ReworkOrder>>('/quality/rework-orders', { params });
   },

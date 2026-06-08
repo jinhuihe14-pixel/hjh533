@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Table, Card, Button, Input, Select, Tag, Space, message, Modal, Form, InputNumber } from 'antd';
-import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons';
+import { SearchOutlined, ReloadOutlined, PlusOutlined, ToolOutlined, RollbackOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { qualityApi } from '../../services/api';
 import { formatDate } from '../../utils/format';
@@ -19,7 +19,12 @@ const QualityInspections = () => {
   const [result, setResult] = useState('');
   const [keyword, setKeyword] = useState('');
   const [createModal, setCreateModal] = useState(false);
+  const [reworkModal, setReworkModal] = useState(false);
+  const [returnModal, setReturnModal] = useState(false);
+  const [currentInspection, setCurrentInspection] = useState<QualityInspection | null>(null);
   const [form] = Form.useForm();
+  const [reworkForm] = Form.useForm();
+  const [returnForm] = Form.useForm();
   const navigate = useNavigate();
   const { user } = useAuthContext();
 
@@ -69,6 +74,52 @@ const QualityInspections = () => {
     } catch (e) {
       console.error(e);
       message.error('质检单创建失败');
+    }
+  };
+
+  const openRework = (record: QualityInspection) => {
+    setCurrentInspection(record);
+    reworkForm.setFieldsValue({
+      quantity: record.failedQuantity,
+      reason: record.defectItems?.map((d: any) => d.name).join('、') || '质检不合格'
+    });
+    setReworkModal(true);
+  };
+
+  const handleRework = async () => {
+    try {
+      const values = await reworkForm.validateFields();
+      await qualityApi.initiateRework(currentInspection!.id, values);
+      message.success('返工单创建成功');
+      setReworkModal(false);
+      reworkForm.resetFields();
+      loadInspections();
+    } catch (e: any) {
+      console.error(e);
+      message.error(e.response?.data?.message || '返工单创建失败');
+    }
+  };
+
+  const openReturn = (record: QualityInspection) => {
+    setCurrentInspection(record);
+    returnForm.setFieldsValue({
+      quantity: record.failedQuantity,
+      reason: '质检不合格'
+    });
+    setReturnModal(true);
+  };
+
+  const handleReturn = async () => {
+    try {
+      const values = await returnForm.validateFields();
+      await qualityApi.initiateReturn(currentInspection!.id, values);
+      message.success('退货单创建成功');
+      setReturnModal(false);
+      returnForm.resetFields();
+      loadInspections();
+    } catch (e: any) {
+      console.error(e);
+      message.error(e.response?.data?.message || '退货单创建失败');
     }
   };
 
@@ -154,6 +205,40 @@ const QualityInspections = () => {
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (date: string) => formatDate(date)
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      width: 200,
+      render: (_: any, record: QualityInspection) => (
+        <Space size="small">
+          <Button type="link" size="small" onClick={() => navigate(`/quality/inspections/${record.id}`)}>
+            详情
+          </Button>
+          {record.result === 'fail' && (user?.role === 'demander' || user?.role === 'admin') && (
+            <>
+              <Button 
+                type="link" 
+                size="small" 
+                icon={<ToolOutlined />} 
+                onClick={() => openRework(record)}
+                disabled={!!record.reworkOrderId}
+              >
+                {record.reworkOrderId ? '已返工' : '发起返工'}
+              </Button>
+              <Button 
+                type="link" 
+                size="small" 
+                danger
+                icon={<RollbackOutlined />} 
+                onClick={() => openReturn(record)}
+              >
+                退货
+              </Button>
+            </>
+          )}
+        </Space>
+      )
     }
   ];
 
@@ -304,6 +389,58 @@ const QualityInspections = () => {
           </Form.Item>
           <Form.Item name="remark" label="备注">
             <Input.TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="发起返工"
+        open={reworkModal}
+        onOk={handleRework}
+        onCancel={() => setReworkModal(false)}
+        width={500}
+        okText="确认提交"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Form form={reworkForm} layout="vertical">
+          <Form.Item label="质检单号">
+            <span style={{ color: '#666' }}>{currentInspection?.inspectionNo}</span>
+          </Form.Item>
+          <Form.Item name="quantity" label="返工数量" rules={[{ required: true, message: '请输入返工数量' }]}>
+            <InputNumber min={1} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="reason" label="返工原因" rules={[{ required: true, message: '请输入返工原因' }]}>
+            <Input.TextArea rows={3} placeholder="请描述返工原因" />
+          </Form.Item>
+          <Form.Item name="remark" label="备注">
+            <Input.TextArea rows={2} placeholder="可选补充说明" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="发起退货"
+        open={returnModal}
+        onOk={handleReturn}
+        onCancel={() => setReturnModal(false)}
+        width={500}
+        okText="确认提交"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Form form={returnForm} layout="vertical">
+          <Form.Item label="质检单号">
+            <span style={{ color: '#666' }}>{currentInspection?.inspectionNo}</span>
+          </Form.Item>
+          <Form.Item name="quantity" label="退货数量" rules={[{ required: true, message: '请输入退货数量' }]}>
+            <InputNumber min={1} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="reason" label="退货原因" rules={[{ required: true, message: '请输入退货原因' }]}>
+            <Input.TextArea rows={3} placeholder="请描述退货原因" />
+          </Form.Item>
+          <Form.Item name="remark" label="备注">
+            <Input.TextArea rows={2} placeholder="可选补充说明" />
           </Form.Item>
         </Form>
       </Modal>

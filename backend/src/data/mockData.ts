@@ -1209,6 +1209,97 @@ export const traceRecords: TraceRecord[] = [
     location: '上海市浦东新区张江高科技园区',
     description: '到货复检合格',
     data: { inspectionNo: 'QI-2024-0002', result: 'pass' }
+  },
+  {
+    id: 'trace-007',
+    batchId: 'batch-002',
+    traceCode: 'TC-202402-ALH002-001',
+    node: 'material_purchase',
+    nodeName: '原料采购',
+    operatorId: 'user-002',
+    operatorName: '王采购',
+    timestamp: dayjs().subtract(25, 'day').toISOString(),
+    location: '上海市浦东新区',
+    description: '6061铝合金板材采购入库',
+    data: { materialOrder: 'mo-002', supplier: 'comp-003' }
+  },
+  {
+    id: 'trace-008',
+    batchId: 'batch-002',
+    traceCode: 'TC-202402-ALH002-001',
+    node: 'incoming_inspection',
+    nodeName: '来料检验',
+    operatorId: 'user-005',
+    operatorName: '周工程师',
+    timestamp: dayjs().subtract(22, 'day').toISOString(),
+    location: '广东省深圳市宝安区',
+    description: '原料入厂检验合格',
+    data: { inspectionResult: 'pass', passRate: 98 }
+  },
+  {
+    id: 'trace-009',
+    batchId: 'batch-002',
+    traceCode: 'TC-202402-ALH002-001',
+    node: 'processing',
+    nodeName: '加工生产',
+    operatorId: 'user-006',
+    operatorName: '李主任',
+    timestamp: dayjs().subtract(18, 'day').toISOString(),
+    location: '腾达精密部件厂-车间B',
+    description: '数控铣床加工外壳',
+    data: { process: '铣削', equipment: 'VMC850' }
+  },
+  {
+    id: 'trace-010',
+    batchId: 'batch-002',
+    traceCode: 'TC-202402-ALH002-001',
+    node: 'initial_inspection',
+    nodeName: '出厂初检',
+    operatorId: 'user-005',
+    operatorName: '周工程师',
+    timestamp: dayjs().subtract(8, 'day').toISOString(),
+    location: '腾达精密部件厂-质检部',
+    description: '初检不合格，尺寸超差，不良率12%',
+    data: { inspectionNo: 'QI-2024-0003', result: 'fail', defectRate: 12 }
+  },
+  {
+    id: 'trace-011',
+    batchId: 'batch-002',
+    traceCode: 'TC-202402-ALH002-001',
+    node: 'rework',
+    nodeName: '返工处理',
+    operatorId: 'user-002',
+    operatorName: '王采购',
+    timestamp: dayjs().subtract(6, 'day').toISOString(),
+    location: '腾达精密部件厂-车间B',
+    description: '已生成返工单 RW-2024-0001，返工数量12件，原因：尺寸超差',
+    data: { reworkNo: 'RW-2024-0001', quantity: 12, reason: '尺寸超差' }
+  },
+  {
+    id: 'trace-012',
+    batchId: 'batch-003',
+    traceCode: 'TC-202403-GAX001-001',
+    node: 'material_purchase',
+    nodeName: '原料采购',
+    operatorId: 'user-003',
+    operatorName: '李经理',
+    timestamp: dayjs().subtract(12, 'day').toISOString(),
+    location: '上海市浦东新区',
+    description: '40Cr合金钢采购入库',
+    data: { materialOrder: 'mo-001', supplier: 'comp-001' }
+  },
+  {
+    id: 'trace-013',
+    batchId: 'batch-003',
+    traceCode: 'TC-202403-GAX001-001',
+    node: 'processing',
+    nodeName: '加工生产',
+    operatorId: 'user-004',
+    operatorName: '孙厂长',
+    timestamp: dayjs().subtract(8, 'day').toISOString(),
+    location: '精工机械加工厂-车间A',
+    description: '精密齿轮轴加工中',
+    data: { process: '滚齿', equipment: 'Y3150E' }
   }
 ];
 
@@ -1540,7 +1631,9 @@ export const workOrderExceptions: WorkOrderException[] = [
     status: 'processing',
     handlerId: 'user-002',
     handlerName: '王采购',
+    handlerRemark: '已转技术部门评估，初步判断为刀具磨损导致',
     resolution: '已通知技术部门分析原因，待返工方案确认',
+    handledAt: dayjs().subtract(1, 'day').toISOString(),
     createdAt: dayjs().subtract(2, 'day').toISOString(),
     updatedAt: dayjs().subtract(1, 'day').toISOString()
   },
@@ -1559,7 +1652,10 @@ export const workOrderExceptions: WorkOrderException[] = [
     status: 'resolved',
     handlerId: 'user-002',
     handlerName: '王采购',
+    handlerRemark: '已与供应商沟通，同意抛丸处理',
     resolution: '同意抛丸处理，费用由供方承担',
+    handledAt: dayjs().subtract(3, 'day').toISOString(),
+    resolvedAt: dayjs().subtract(3, 'day').toISOString(),
     createdAt: dayjs().subtract(4, 'day').toISOString(),
     updatedAt: dayjs().subtract(3, 'day').toISOString()
   }

@@ -69,7 +69,7 @@ const QualityBatches = () => {
       return;
     }
     try {
-      const data = await qualityApi.batchPrint(selectedRowKeys as string[]);
+      const data: any = await qualityApi.batchPrint(selectedRowKeys as string[]);
       message.success(`已生成 ${data.count} 个批次的打印数据`);
       setSelectedRowKeys([]);
     } catch (e) {

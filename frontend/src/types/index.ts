@@ -489,10 +489,14 @@ export interface WorkOrderException {
   reporterId: string;
   reporterName: string;
   photos: string[];
+  images?: string[];
   status: 'pending' | 'processing' | 'resolved' | 'rejected';
   handlerId?: string;
   handlerName?: string;
+  handlerRemark?: string;
   resolution?: string;
+  handledAt?: string;
+  resolvedAt?: string;
   createdAt: string;
   updatedAt: string;
   workOrder?: MobileWorkOrder;
