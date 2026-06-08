@@ -270,6 +270,224 @@ export interface Notification {
   createdAt: string;
 }
 
+export type InspectionType = 'initial' | 'reinspection' | 'spot_check' | 'incoming';
+export type InspectionResult = 'pass' | 'fail' | 'pending';
+export type DefectDisposition = 'rework' | 'return' | 'concession' | 'scrap';
+
+export interface QualityInspection {
+  id: string;
+  inspectionNo: string;
+  type: InspectionType;
+  orderId: string;
+  orderType: OrderType;
+  batchId: string;
+  inspectorId: string;
+  inspectorName: string;
+  result: InspectionResult;
+  totalQuantity: number;
+  inspectedQuantity: number;
+  passedQuantity: number;
+  failedQuantity: number;
+  defectRate: number;
+  defectItems: DefectItem[];
+  disposition?: DefectDisposition;
+  reworkOrderId?: string;
+  remark?: string;
+  attachments: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DefectItem {
+  id: string;
+  name: string;
+  description: string;
+  severity: 'minor' | 'major' | 'critical';
+  quantity: number;
+}
+
+export interface QualityBatch {
+  id: string;
+  batchNo: string;
+  traceCode: string;
+  orderId: string;
+  orderType: OrderType;
+  partName: string;
+  partCode: string;
+  quantity: number;
+  supplierId?: string;
+  supplierName?: string;
+  factoryId?: string;
+  factoryName?: string;
+  materialBatchNo?: string;
+  processStandard?: string;
+  productionDate?: string;
+  inspections: string[];
+  overallResult: InspectionResult;
+  qrCodeUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TraceRecord {
+  id: string;
+  batchId: string;
+  traceCode: string;
+  node: string;
+  nodeName: string;
+  operatorId?: string;
+  operatorName?: string;
+  timestamp: string;
+  location?: string;
+  description?: string;
+  data?: Record<string, any>;
+}
+
+export interface ReworkOrder {
+  id: string;
+  reworkNo: string;
+  sourceInspectionId: string;
+  orderId: string;
+  orderType: OrderType;
+  factoryId: string;
+  factoryName: string;
+  quantity: number;
+  reason: string;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  deadline?: string;
+  remark?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeductionRule {
+  id: string;
+  name: string;
+  description?: string;
+  orderId?: string;
+  batchId?: string;
+  defectType: string;
+  deductionType: 'percentage' | 'fixed' | 'per_unit';
+  deductionValue: number;
+  isActive: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RatingDimension = 'delivery' | 'quality' | 'service' | 'price';
+
+export interface RatingConfig {
+  id: string;
+  dimension: RatingDimension;
+  name: string;
+  weight: number;
+  scoringCriteria: ScoringCriterion[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ScoringCriterion {
+  id: string;
+  name: string;
+  description: string;
+  minValue: number;
+  maxValue: number;
+  score: number;
+  unit: string;
+}
+
+export interface SupplierRatingDetail {
+  id: string;
+  supplierId: string;
+  period: string;
+  overallScore: number;
+  level: 'A' | 'B' | 'C';
+  dimensions: RatingDimensionScore[];
+  orderCount: number;
+  onTimeDeliveryRate: number;
+  passRate: number;
+  avgResponseTime: number;
+  priceCompetitiveIndex: number;
+  complaintCount: number;
+  createdAt: string;
+}
+
+export interface RatingDimensionScore {
+  dimension: RatingDimension;
+  name: string;
+  weight: number;
+  score: number;
+  rawValue: number;
+  unit: string;
+}
+
+export interface RectificationNotice {
+  id: string;
+  noticeNo: string;
+  supplierId: string;
+  supplierName: string;
+  period: string;
+  ratingLevel: 'A' | 'B' | 'C';
+  score: number;
+  issues: string[];
+  requirements: string;
+  deadline: string;
+  status: 'pending' | 'in_progress' | 'submitted' | 'verified' | 'closed';
+  responseContent?: string;
+  responseAt?: string;
+  verifierId?: string;
+  verifierName?: string;
+  remark?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MobileWorkOrder {
+  id: string;
+  workOrderNo: string;
+  processingOrderId: string;
+  processingOrderNo: string;
+  factoryId: string;
+  partName: string;
+  partCode: string;
+  quantity: number;
+  processName: string;
+  processIndex: number;
+  status: 'pending' | 'in_progress' | 'completed' | 'quality_issue' | 'rework';
+  assigneeId?: string;
+  assigneeName?: string;
+  startTime?: string;
+  endTime?: string;
+  outputQuantity?: number;
+  defectQuantity?: number;
+  drawingIds: string[];
+  remark?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkOrderException {
+  id: string;
+  workOrderId: string;
+  processingOrderId: string;
+  factoryId: string;
+  type: 'process' | 'material' | 'equipment' | 'other';
+  typeName: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  reporterId: string;
+  reporterName: string;
+  photos: string[];
+  status: 'pending' | 'processing' | 'resolved' | 'rejected';
+  handlerId?: string;
+  handlerName?: string;
+  resolution?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DashboardStats {
   totalOrders: number;
   pendingOrders: number;
@@ -280,4 +498,6 @@ export interface DashboardStats {
   overduePayment: number;
   activeLogistics: number;
   warningCount: number;
+  pendingInspections: number;
+  pendingExceptions: number;
 }

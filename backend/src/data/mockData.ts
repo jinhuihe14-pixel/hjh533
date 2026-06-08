@@ -2,7 +2,10 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import {
   User, Company, ProcessingOrder, MaterialOrder, Payment, Invoice,
-  Logistics, SupplierRating, PriceQuote, Drawing, Notification, OperationLog
+  Logistics, SupplierRating, PriceQuote, Drawing, Notification, OperationLog,
+  QualityInspection, QualityBatch, TraceRecord, ReworkOrder, DeductionRule,
+  RatingConfig, SupplierRatingDetail, RectificationNotice, MobileWorkOrder,
+  WorkOrderException
 } from '../types';
 
 export const companies: Company[] = [
@@ -983,4 +986,581 @@ export const orderNodes = [
   { key: 'shipped', name: '已发货', order: 9 },
   { key: 'delivered', name: '已送达', order: 10 },
   { key: 'completed', name: '已完成', order: 11 }
+];
+
+export const qualityBatches: QualityBatch[] = [
+  {
+    id: 'batch-001',
+    batchNo: 'BATCH-2024-0001',
+    traceCode: 'TC-202401-GAX001-001',
+    orderId: 'po-003',
+    orderType: 'processing',
+    partName: '不锈钢连接件',
+    partCode: 'SSC-003',
+    quantity: 2000,
+    supplierId: 'comp-002',
+    supplierName: '鑫源钢材有限公司',
+    factoryId: 'comp-004',
+    factoryName: '精工机械加工厂',
+    materialBatchNo: 'MAT-BATCH-2024-001',
+    processStandard: 'GB/T 3098.1-2010',
+    productionDate: dayjs().subtract(20, 'day').toISOString(),
+    inspections: ['inspect-001', 'inspect-002'],
+    overallResult: 'pass',
+    qrCodeUrl: '/qrcodes/batch-001.png',
+    createdAt: dayjs().subtract(25, 'day').toISOString(),
+    updatedAt: dayjs().subtract(10, 'day').toISOString()
+  },
+  {
+    id: 'batch-002',
+    batchNo: 'BATCH-2024-0002',
+    traceCode: 'TC-202402-ALH002-001',
+    orderId: 'po-002',
+    orderType: 'processing',
+    partName: '铝合金外壳',
+    partCode: 'ALH-002',
+    quantity: 1000,
+    supplierId: 'comp-003',
+    supplierName: '宏达铝合金材料公司',
+    factoryId: 'comp-005',
+    factoryName: '腾达精密部件厂',
+    materialBatchNo: 'MAT-BATCH-2024-002',
+    processStandard: 'GB/T 6060.1-1997',
+    productionDate: dayjs().subtract(10, 'day').toISOString(),
+    inspections: ['inspect-003'],
+    overallResult: 'pending',
+    qrCodeUrl: '/qrcodes/batch-002.png',
+    createdAt: dayjs().subtract(15, 'day').toISOString(),
+    updatedAt: dayjs().subtract(2, 'day').toISOString()
+  },
+  {
+    id: 'batch-003',
+    batchNo: 'BATCH-2024-0003',
+    traceCode: 'TC-202403-GAX001-001',
+    orderId: 'po-001',
+    orderType: 'processing',
+    partName: '精密齿轮轴',
+    partCode: 'GAX-001',
+    quantity: 500,
+    supplierId: 'comp-002',
+    supplierName: '鑫源钢材有限公司',
+    factoryId: 'comp-004',
+    factoryName: '精工机械加工厂',
+    materialBatchNo: 'MAT-BATCH-2024-003',
+    processStandard: 'GB/T 10095.1-2008',
+    productionDate: dayjs().subtract(3, 'day').toISOString(),
+    inspections: [],
+    overallResult: 'pending',
+    qrCodeUrl: '/qrcodes/batch-003.png',
+    createdAt: dayjs().subtract(5, 'day').toISOString(),
+    updatedAt: dayjs().subtract(3, 'day').toISOString()
+  }
+];
+
+export const qualityInspections: QualityInspection[] = [
+  {
+    id: 'inspect-001',
+    inspectionNo: 'QI-2024-0001',
+    type: 'initial',
+    orderId: 'po-003',
+    orderType: 'processing',
+    batchId: 'batch-001',
+    inspectorId: 'user-004',
+    inspectorName: '孙厂长',
+    result: 'pass',
+    totalQuantity: 2000,
+    inspectedQuantity: 200,
+    passedQuantity: 198,
+    failedQuantity: 2,
+    defectRate: 1.0,
+    defectItems: [
+      { id: 'defect-001', name: '表面划痕', description: '轻微表面划痕', severity: 'minor', quantity: 2 }
+    ],
+    disposition: 'concession',
+    remark: '轻微瑕疵，不影响使用',
+    attachments: [],
+    createdAt: dayjs().subtract(15, 'day').toISOString(),
+    updatedAt: dayjs().subtract(14, 'day').toISOString()
+  },
+  {
+    id: 'inspect-002',
+    inspectionNo: 'QI-2024-0002',
+    type: 'reinspection',
+    orderId: 'po-003',
+    orderType: 'processing',
+    batchId: 'batch-001',
+    inspectorId: 'user-002',
+    inspectorName: '王采购',
+    result: 'pass',
+    totalQuantity: 2000,
+    inspectedQuantity: 100,
+    passedQuantity: 100,
+    failedQuantity: 0,
+    defectRate: 0,
+    defectItems: [],
+    remark: '复检合格',
+    attachments: [],
+    createdAt: dayjs().subtract(13, 'day').toISOString(),
+    updatedAt: dayjs().subtract(12, 'day').toISOString()
+  },
+  {
+    id: 'inspect-003',
+    inspectionNo: 'QI-2024-0003',
+    type: 'initial',
+    orderId: 'po-002',
+    orderType: 'processing',
+    batchId: 'batch-002',
+    inspectorId: 'user-005',
+    inspectorName: '周工程师',
+    result: 'fail',
+    totalQuantity: 1000,
+    inspectedQuantity: 100,
+    passedQuantity: 88,
+    failedQuantity: 12,
+    defectRate: 12,
+    defectItems: [
+      { id: 'defect-002', name: '尺寸超差', description: '关键尺寸超出公差范围', severity: 'major', quantity: 8 },
+      { id: 'defect-003', name: '表面氧化不良', description: '阳极氧化层不均匀', severity: 'minor', quantity: 4 }
+    ],
+    disposition: 'rework',
+    reworkOrderId: 'rework-001',
+    remark: '尺寸超差需返工处理',
+    attachments: [],
+    createdAt: dayjs().subtract(2, 'day').toISOString(),
+    updatedAt: dayjs().subtract(1, 'day').toISOString()
+  }
+];
+
+export const traceRecords: TraceRecord[] = [
+  {
+    id: 'trace-001',
+    batchId: 'batch-001',
+    traceCode: 'TC-202401-GAX001-001',
+    node: 'material_purchase',
+    nodeName: '原料采购',
+    operatorId: 'user-002',
+    operatorName: '王采购',
+    timestamp: dayjs().subtract(30, 'day').toISOString(),
+    location: '上海市浦东新区',
+    description: '304不锈钢棒采购入库',
+    data: { materialOrder: 'mo-003', supplier: 'comp-002' }
+  },
+  {
+    id: 'trace-002',
+    batchId: 'batch-001',
+    traceCode: 'TC-202401-GAX001-001',
+    node: 'incoming_inspection',
+    nodeName: '来料检验',
+    operatorId: 'user-004',
+    operatorName: '孙厂长',
+    timestamp: dayjs().subtract(27, 'day').toISOString(),
+    location: '浙江省宁波市鄞州区',
+    description: '原料入厂检验合格',
+    data: { inspectionResult: 'pass', passRate: 99 }
+  },
+  {
+    id: 'trace-003',
+    batchId: 'batch-001',
+    traceCode: 'TC-202401-GAX001-001',
+    node: 'processing',
+    nodeName: '加工生产',
+    operatorId: 'user-004',
+    operatorName: '孙厂长',
+    timestamp: dayjs().subtract(24, 'day').toISOString(),
+    location: '精工机械加工厂-车间A',
+    description: '数控车床加工',
+    data: { process: '车削', equipment: 'CK6140' }
+  },
+  {
+    id: 'trace-004',
+    batchId: 'batch-001',
+    traceCode: 'TC-202401-GAX001-001',
+    node: 'initial_inspection',
+    nodeName: '出厂初检',
+    operatorId: 'user-004',
+    operatorName: '孙厂长',
+    timestamp: dayjs().subtract(15, 'day').toISOString(),
+    location: '精工机械加工厂-质检部',
+    description: '初检合格',
+    data: { inspectionNo: 'QI-2024-0001', result: 'pass' }
+  },
+  {
+    id: 'trace-005',
+    batchId: 'batch-001',
+    traceCode: 'TC-202401-GAX001-001',
+    node: 'shipped',
+    nodeName: '出库发货',
+    operatorId: 'user-004',
+    operatorName: '孙厂长',
+    timestamp: dayjs().subtract(10, 'day').toISOString(),
+    location: '浙江省宁波市鄞州区',
+    description: '产品出库发运',
+    data: { logisticsNo: 'JD1234567890005', carrier: '京东物流' }
+  },
+  {
+    id: 'trace-006',
+    batchId: 'batch-001',
+    traceCode: 'TC-202401-GAX001-001',
+    node: 'reinspection',
+    nodeName: '到货复检',
+    operatorId: 'user-002',
+    operatorName: '王采购',
+    timestamp: dayjs().subtract(7, 'day').toISOString(),
+    location: '上海市浦东新区张江高科技园区',
+    description: '到货复检合格',
+    data: { inspectionNo: 'QI-2024-0002', result: 'pass' }
+  }
+];
+
+export const reworkOrders: ReworkOrder[] = [
+  {
+    id: 'rework-001',
+    reworkNo: 'RW-2024-0001',
+    sourceInspectionId: 'inspect-003',
+    orderId: 'po-002',
+    orderType: 'processing',
+    factoryId: 'comp-005',
+    factoryName: '腾达精密部件厂',
+    quantity: 12,
+    reason: '尺寸超差，关键尺寸超出IT7级精度要求',
+    status: 'processing',
+    deadline: dayjs().add(5, 'day').toISOString(),
+    remark: '需重新精车外圆尺寸',
+    createdAt: dayjs().subtract(1, 'day').toISOString(),
+    updatedAt: dayjs().subtract(1, 'day').toISOString()
+  }
+];
+
+export const deductionRules: DeductionRule[] = [
+  {
+    id: 'deduct-001',
+    name: '尺寸超差扣款',
+    description: '关键尺寸超出公差范围的扣款规则',
+    orderId: 'po-002',
+    batchId: 'batch-002',
+    defectType: 'dimension_error',
+    deductionType: 'per_unit',
+    deductionValue: 20,
+    isActive: true,
+    createdBy: 'user-002',
+    createdAt: dayjs().subtract(2, 'day').toISOString(),
+    updatedAt: dayjs().subtract(2, 'day').toISOString()
+  },
+  {
+    id: 'deduct-002',
+    name: '批量不良率扣款',
+    description: '不良率超过阈值的比例扣款',
+    orderId: 'po-002',
+    batchId: 'batch-002',
+    defectType: 'batch_defect',
+    deductionType: 'percentage',
+    deductionValue: 5,
+    isActive: true,
+    createdBy: 'user-002',
+    createdAt: dayjs().subtract(2, 'day').toISOString(),
+    updatedAt: dayjs().subtract(2, 'day').toISOString()
+  },
+  {
+    id: 'deduct-003',
+    name: '表面瑕疵扣款',
+    description: '轻微表面瑕疵的固定扣款',
+    defectType: 'surface_defect',
+    deductionType: 'fixed',
+    deductionValue: 500,
+    isActive: true,
+    createdBy: 'user-002',
+    createdAt: dayjs().subtract(10, 'day').toISOString(),
+    updatedAt: dayjs().subtract(10, 'day').toISOString()
+  }
+];
+
+export const ratingConfigs: RatingConfig[] = [
+  {
+    id: 'rc-delivery',
+    dimension: 'delivery',
+    name: '交期准时率',
+    weight: 30,
+    isActive: true,
+    scoringCriteria: [
+      { id: 'sc-d1', name: '准时率≥98%', description: '交货准时率达到98%以上', minValue: 98, maxValue: 100, score: 100, unit: '%' },
+      { id: 'sc-d2', name: '准时率95%-98%', description: '交货准时率在95%-98%之间', minValue: 95, maxValue: 98, score: 85, unit: '%' },
+      { id: 'sc-d3', name: '准时率90%-95%', description: '交货准时率在90%-95%之间', minValue: 90, maxValue: 95, score: 70, unit: '%' },
+      { id: 'sc-d4', name: '准时率<90%', description: '交货准时率低于90%', minValue: 0, maxValue: 90, score: 50, unit: '%' }
+    ],
+    createdAt: dayjs().subtract(6, 'month').toISOString(),
+    updatedAt: dayjs().subtract(1, 'month').toISOString()
+  },
+  {
+    id: 'rc-quality',
+    dimension: 'quality',
+    name: '产品不良率',
+    weight: 35,
+    isActive: true,
+    scoringCriteria: [
+      { id: 'sc-q1', name: '不良率≤1%', description: '产品不良率低于1%', minValue: 0, maxValue: 1, score: 100, unit: '%' },
+      { id: 'sc-q2', name: '不良率1%-2%', description: '产品不良率在1%-2%之间', minValue: 1, maxValue: 2, score: 85, unit: '%' },
+      { id: 'sc-q3', name: '不良率2%-5%', description: '产品不良率在2%-5%之间', minValue: 2, maxValue: 5, score: 70, unit: '%' },
+      { id: 'sc-q4', name: '不良率>5%', description: '产品不良率高于5%', minValue: 5, maxValue: 100, score: 40, unit: '%' }
+    ],
+    createdAt: dayjs().subtract(6, 'month').toISOString(),
+    updatedAt: dayjs().subtract(1, 'month').toISOString()
+  },
+  {
+    id: 'rc-service',
+    dimension: 'service',
+    name: '售后响应速度',
+    weight: 20,
+    isActive: true,
+    scoringCriteria: [
+      { id: 'sc-s1', name: '响应≤4小时', description: '售后问题平均响应时间4小时以内', minValue: 0, maxValue: 4, score: 100, unit: '小时' },
+      { id: 'sc-s2', name: '响应4-12小时', description: '售后问题平均响应时间4-12小时', minValue: 4, maxValue: 12, score: 80, unit: '小时' },
+      { id: 'sc-s3', name: '响应12-24小时', description: '售后问题平均响应时间12-24小时', minValue: 12, maxValue: 24, score: 60, unit: '小时' },
+      { id: 'sc-s4', name: '响应>24小时', description: '售后问题平均响应时间超过24小时', minValue: 24, maxValue: 168, score: 40, unit: '小时' }
+    ],
+    createdAt: dayjs().subtract(6, 'month').toISOString(),
+    updatedAt: dayjs().subtract(1, 'month').toISOString()
+  },
+  {
+    id: 'rc-price',
+    dimension: 'price',
+    name: '报价竞争力',
+    weight: 15,
+    isActive: true,
+    scoringCriteria: [
+      { id: 'sc-p1', name: '价格低于均价5%以上', description: '报价低于市场均价5%以上', minValue: 95, maxValue: 100, score: 100, unit: '指数' },
+      { id: 'sc-p2', name: '价格接近均价', description: '报价在市场均价±5%以内', minValue: 90, maxValue: 95, score: 80, unit: '指数' },
+      { id: 'sc-p3', name: '价格高于均价5%-10%', description: '报价高于市场均价5%-10%', minValue: 80, maxValue: 90, score: 60, unit: '指数' },
+      { id: 'sc-p4', name: '价格高于均价10%以上', description: '报价高于市场均价10%以上', minValue: 0, maxValue: 80, score: 40, unit: '指数' }
+    ],
+    createdAt: dayjs().subtract(6, 'month').toISOString(),
+    updatedAt: dayjs().subtract(1, 'month').toISOString()
+  }
+];
+
+export const supplierRatingDetails: SupplierRatingDetail[] = [
+  {
+    id: 'srd-001',
+    supplierId: 'comp-002',
+    period: '2024-02',
+    overallScore: 90,
+    level: 'A',
+    orderCount: 15,
+    onTimeDeliveryRate: 97,
+    passRate: 98,
+    avgResponseTime: 3,
+    priceCompetitiveIndex: 92,
+    complaintCount: 0,
+    dimensions: [
+      { dimension: 'delivery', name: '交期准时率', weight: 30, score: 92, rawValue: 97, unit: '%' },
+      { dimension: 'quality', name: '产品不良率', weight: 35, score: 89, rawValue: 2, unit: '%' },
+      { dimension: 'service', name: '售后响应速度', weight: 20, score: 89, rawValue: 3, unit: '小时' },
+      { dimension: 'price', name: '报价竞争力', weight: 15, score: 89, rawValue: 92, unit: '指数' }
+    ],
+    createdAt: dayjs().subtract(1, 'month').toISOString()
+  },
+  {
+    id: 'srd-002',
+    supplierId: 'comp-003',
+    period: '2024-02',
+    overallScore: 85,
+    level: 'B',
+    orderCount: 10,
+    onTimeDeliveryRate: 90,
+    passRate: 96,
+    avgResponseTime: 8,
+    priceCompetitiveIndex: 88,
+    complaintCount: 0,
+    dimensions: [
+      { dimension: 'delivery', name: '交期准时率', weight: 30, score: 83, rawValue: 90, unit: '%' },
+      { dimension: 'quality', name: '产品不良率', weight: 35, score: 87, rawValue: 4, unit: '%' },
+      { dimension: 'service', name: '售后响应速度', weight: 20, score: 85, rawValue: 8, unit: '小时' },
+      { dimension: 'price', name: '报价竞争力', weight: 15, score: 85, rawValue: 88, unit: '指数' }
+    ],
+    createdAt: dayjs().subtract(1, 'month').toISOString()
+  },
+  {
+    id: 'srd-003',
+    supplierId: 'comp-004',
+    period: '2024-02',
+    overallScore: 92,
+    level: 'A',
+    orderCount: 8,
+    onTimeDeliveryRate: 98,
+    passRate: 99,
+    avgResponseTime: 2,
+    priceCompetitiveIndex: 85,
+    complaintCount: 0,
+    dimensions: [
+      { dimension: 'delivery', name: '交期准时率', weight: 30, score: 93, rawValue: 98, unit: '%' },
+      { dimension: 'quality', name: '产品不良率', weight: 35, score: 91, rawValue: 1, unit: '%' },
+      { dimension: 'service', name: '售后响应速度', weight: 20, score: 92, rawValue: 2, unit: '小时' },
+      { dimension: 'price', name: '报价竞争力', weight: 15, score: 92, rawValue: 85, unit: '指数' }
+    ],
+    createdAt: dayjs().subtract(1, 'month').toISOString()
+  },
+  {
+    id: 'srd-004',
+    supplierId: 'comp-005',
+    period: '2024-02',
+    overallScore: 95,
+    level: 'A',
+    orderCount: 10,
+    onTimeDeliveryRate: 96,
+    passRate: 99.5,
+    avgResponseTime: 2.5,
+    priceCompetitiveIndex: 78,
+    complaintCount: 0,
+    dimensions: [
+      { dimension: 'delivery', name: '交期准时率', weight: 30, score: 94, rawValue: 96, unit: '%' },
+      { dimension: 'quality', name: '产品不良率', weight: 35, score: 96, rawValue: 0.5, unit: '%' },
+      { dimension: 'service', name: '售后响应速度', weight: 20, score: 95, rawValue: 2.5, unit: '小时' },
+      { dimension: 'price', name: '报价竞争力', weight: 15, score: 95, rawValue: 78, unit: '指数' }
+    ],
+    createdAt: dayjs().subtract(1, 'month').toISOString()
+  }
+];
+
+export const rectificationNotices: RectificationNotice[] = [
+  {
+    id: 'rn-001',
+    noticeNo: 'RN-2024-0001',
+    supplierId: 'comp-003',
+    supplierName: '宏达铝合金材料公司',
+    period: '2024-02',
+    ratingLevel: 'B',
+    score: 85,
+    issues: ['交期准时率偏低，近3个月呈下降趋势', '产品不良率偶有波动'],
+    requirements: '请分析交期延误原因，制定改进措施，提交整改方案',
+    deadline: dayjs().add(10, 'day').toISOString(),
+    status: 'in_progress',
+    remark: '需重点关注交期问题',
+    createdAt: dayjs().subtract(3, 'day').toISOString(),
+    updatedAt: dayjs().subtract(1, 'day').toISOString()
+  }
+];
+
+export const mobileWorkOrders: MobileWorkOrder[] = [
+  {
+    id: 'wo-001',
+    workOrderNo: 'WO-2024-0001',
+    processingOrderId: 'po-001',
+    processingOrderNo: 'PO-2024-0001',
+    factoryId: 'comp-004',
+    partName: '精密齿轮轴',
+    partCode: 'GAX-001',
+    quantity: 500,
+    processName: '粗车外圆',
+    processIndex: 1,
+    status: 'completed',
+    assigneeId: 'user-004',
+    assigneeName: '孙厂长',
+    startTime: dayjs().subtract(5, 'day').toISOString(),
+    endTime: dayjs().subtract(4, 'day').toISOString(),
+    outputQuantity: 498,
+    defectQuantity: 2,
+    drawingIds: ['draw-001', 'draw-002'],
+    remark: '首件加工完成',
+    createdAt: dayjs().subtract(6, 'day').toISOString(),
+    updatedAt: dayjs().subtract(4, 'day').toISOString()
+  },
+  {
+    id: 'wo-002',
+    workOrderNo: 'WO-2024-0002',
+    processingOrderId: 'po-001',
+    processingOrderNo: 'PO-2024-0001',
+    factoryId: 'comp-004',
+    partName: '精密齿轮轴',
+    partCode: 'GAX-001',
+    quantity: 498,
+    processName: '精车外圆',
+    processIndex: 2,
+    status: 'in_progress',
+    assigneeId: 'user-004',
+    assigneeName: '孙厂长',
+    startTime: dayjs().subtract(3, 'day').toISOString(),
+    outputQuantity: 200,
+    defectQuantity: 0,
+    drawingIds: ['draw-001', 'draw-002'],
+    createdAt: dayjs().subtract(4, 'day').toISOString(),
+    updatedAt: dayjs().subtract(2, 'day').toISOString()
+  },
+  {
+    id: 'wo-003',
+    workOrderNo: 'WO-2024-0003',
+    processingOrderId: 'po-001',
+    processingOrderNo: 'PO-2024-0001',
+    factoryId: 'comp-004',
+    partName: '精密齿轮轴',
+    partCode: 'GAX-001',
+    quantity: 298,
+    processName: '滚齿加工',
+    processIndex: 3,
+    status: 'pending',
+    drawingIds: ['draw-001', 'draw-002'],
+    createdAt: dayjs().subtract(3, 'day').toISOString(),
+    updatedAt: dayjs().subtract(3, 'day').toISOString()
+  },
+  {
+    id: 'wo-004',
+    workOrderNo: 'WO-2024-0004',
+    processingOrderId: 'po-002',
+    processingOrderNo: 'PO-2024-0002',
+    factoryId: 'comp-005',
+    partName: '铝合金外壳',
+    partCode: 'ALH-002',
+    quantity: 1000,
+    processName: '数控铣削',
+    processIndex: 1,
+    status: 'quality_issue',
+    assigneeId: 'user-005',
+    assigneeName: '周工程师',
+    startTime: dayjs().subtract(5, 'day').toISOString(),
+    outputQuantity: 800,
+    defectQuantity: 12,
+    drawingIds: ['draw-003'],
+    remark: '发现尺寸超差问题',
+    createdAt: dayjs().subtract(7, 'day').toISOString(),
+    updatedAt: dayjs().subtract(1, 'day').toISOString()
+  }
+];
+
+export const workOrderExceptions: WorkOrderException[] = [
+  {
+    id: 'exc-001',
+    workOrderId: 'wo-004',
+    processingOrderId: 'po-002',
+    factoryId: 'comp-005',
+    type: 'process',
+    typeName: '工艺异常',
+    description: '加工过程中发现部分工件外圆尺寸超差，超出IT7级公差范围',
+    severity: 'high',
+    reporterId: 'user-005',
+    reporterName: '周工程师',
+    photos: ['/photos/exc-001-1.jpg', '/photos/exc-001-2.jpg'],
+    status: 'processing',
+    handlerId: 'user-002',
+    handlerName: '王采购',
+    resolution: '已通知技术部门分析原因，待返工方案确认',
+    createdAt: dayjs().subtract(2, 'day').toISOString(),
+    updatedAt: dayjs().subtract(1, 'day').toISOString()
+  },
+  {
+    id: 'exc-002',
+    workOrderId: 'wo-002',
+    processingOrderId: 'po-001',
+    factoryId: 'comp-004',
+    type: 'material',
+    typeName: '原料问题',
+    description: '部分原料表面有轻微锈斑，建议先抛丸处理后再加工',
+    severity: 'low',
+    reporterId: 'user-004',
+    reporterName: '孙厂长',
+    photos: ['/photos/exc-002-1.jpg'],
+    status: 'resolved',
+    handlerId: 'user-002',
+    handlerName: '王采购',
+    resolution: '同意抛丸处理，费用由供方承担',
+    createdAt: dayjs().subtract(4, 'day').toISOString(),
+    updatedAt: dayjs().subtract(3, 'day').toISOString()
+  }
 ];

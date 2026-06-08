@@ -1,11 +1,17 @@
 import {
   users, companies, processingOrders, materialOrders, payments,
   invoices, logisticsList, supplierRatings, priceQuotes, drawings,
-  notifications, operationLogs, orderNodes
+  notifications, operationLogs, orderNodes,
+  qualityBatches, qualityInspections, traceRecords, reworkOrders,
+  deductionRules, ratingConfigs, supplierRatingDetails, rectificationNotices,
+  mobileWorkOrders, workOrderExceptions
 } from './mockData';
 import {
   User, Company, ProcessingOrder, MaterialOrder, Payment, Invoice,
-  Logistics, SupplierRating, PriceQuote, Drawing, Notification, OperationLog
+  Logistics, SupplierRating, PriceQuote, Drawing, Notification, OperationLog,
+  QualityBatch, QualityInspection, TraceRecord, ReworkOrder, DeductionRule,
+  RatingConfig, SupplierRatingDetail, RectificationNotice, MobileWorkOrder,
+  WorkOrderException
 } from '../types';
 
 export const store = {
@@ -21,7 +27,17 @@ export const store = {
   drawings: [...drawings] as Drawing[],
   notifications: [...notifications] as Notification[],
   operationLogs: [...operationLogs] as OperationLog[],
-  orderNodes: [...orderNodes]
+  orderNodes: [...orderNodes],
+  qualityBatches: [...qualityBatches] as QualityBatch[],
+  qualityInspections: [...qualityInspections] as QualityInspection[],
+  traceRecords: [...traceRecords] as TraceRecord[],
+  reworkOrders: [...reworkOrders] as ReworkOrder[],
+  deductionRules: [...deductionRules] as DeductionRule[],
+  ratingConfigs: [...ratingConfigs] as RatingConfig[],
+  supplierRatingDetails: [...supplierRatingDetails] as SupplierRatingDetail[],
+  rectificationNotices: [...rectificationNotices] as RectificationNotice[],
+  mobileWorkOrders: [...mobileWorkOrders] as MobileWorkOrder[],
+  workOrderExceptions: [...workOrderExceptions] as WorkOrderException[],
 };
 
 export const addOperationLog = (log: Omit<OperationLog, 'id' | 'createdAt'>) => {

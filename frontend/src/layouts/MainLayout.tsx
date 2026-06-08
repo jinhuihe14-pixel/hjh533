@@ -11,7 +11,10 @@ import {
   LogoutOutlined,
   UserOutlined,
   FileTextOutlined,
-  HistoryOutlined
+  HistoryOutlined,
+  QualityOutlined,
+  StarOutlined,
+  MobileOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../App';
@@ -99,6 +102,66 @@ const MainLayout = () => {
         children: [
           { key: '/suppliers', label: '供应商列表' },
           { key: '/suppliers/price-compare', label: '智能比价' }
+        ]
+      });
+    }
+
+    if (user?.role === 'demander' || user?.role === 'admin') {
+      items.push({
+        key: 'quality-group',
+        icon: <QualityOutlined />,
+        label: '质量管理',
+        children: [
+          { key: '/quality/batches', label: '批次管理' },
+          { key: '/quality/inspections', label: '质检记录' }
+        ]
+      });
+    } else if (user?.role === 'factory' || user?.role === 'supplier') {
+      items.push({
+        key: '/quality/batches',
+        icon: <QualityOutlined />,
+        label: '质量追溯'
+      });
+    }
+
+    if (user?.role === 'demander' || user?.role === 'admin') {
+      items.push({
+        key: 'rating-group',
+        icon: <StarOutlined />,
+        label: '绩效评级',
+        children: [
+          { key: '/rating', label: '评级列表' },
+          { key: '/rating/rectifications', label: '整改通知' },
+          { key: '/rating/config', label: '评级配置' }
+        ]
+      });
+    } else if (user?.role === 'factory' || user?.role === 'supplier') {
+      items.push({
+        key: '/rating',
+        icon: <StarOutlined />,
+        label: '绩效评级'
+      });
+    }
+
+    if (user?.role === 'factory') {
+      items.push({
+        key: 'workorder-group',
+        icon: <MobileOutlined />,
+        label: '工单中心',
+        children: [
+          { key: '/workorder/dashboard', label: '工单工作台' },
+          { key: '/workorder', label: '工单列表' },
+          { key: '/workorder/exceptions', label: '异常记录' }
+        ]
+      });
+    } else if (user?.role === 'demander' || user?.role === 'admin') {
+      items.push({
+        key: 'workorder-group',
+        icon: <MobileOutlined />,
+        label: '外协工单',
+        children: [
+          { key: '/workorder', label: '工单列表' },
+          { key: '/workorder/exceptions', label: '异常管理' }
         ]
       });
     }

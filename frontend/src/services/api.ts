@@ -1,5 +1,11 @@
 import request from '../utils/request';
-import { User, ProcessingOrder, MaterialOrder, Payment, Invoice, Logistics, Notification, DashboardStats, PageResult, Company, SupplierRating, PriceQuote } from '../types';
+import {
+  User, ProcessingOrder, MaterialOrder, Payment, Invoice, Logistics,
+  Notification, DashboardStats, PageResult, Company, SupplierRating,
+  PriceQuote, QualityBatch, QualityInspection, ReworkOrder,
+  RatingConfig, SupplierRatingDetail, RectificationNotice,
+  MobileWorkOrder, WorkOrderException, WorkOrderStats, DeductionRule
+} from '../types';
 
 export const authApi = {
   login: (username: string, password: string) => {
@@ -154,5 +160,128 @@ export const dashboardApi = {
   },
   getRecentOrders: () => {
     return request.get<any, any[]>('/dashboard/recent-orders');
+  }
+};
+
+export const qualityApi = {
+  getBatches: (params?: any) => {
+    return request.get<any, PageResult<QualityBatch>>('/quality/batches', { params });
+  },
+  getBatch: (id: string) => {
+    return request.get<any, QualityBatch>(`/quality/batches/${id}`);
+  },
+  createBatch: (data: any) => {
+    return request.post('/quality/batches', data);
+  },
+  getTrace: (traceCode: string) => {
+    return request.get<any, any>(`/quality/trace/${traceCode}`);
+  },
+  getInspections: (params?: any) => {
+    return request.get<any, PageResult<QualityInspection>>('/quality/inspections', { params });
+  },
+  getInspection: (id: string) => {
+    return request.get<any, QualityInspection>(`/quality/inspections/${id}`);
+  },
+  createInspection: (data: any) => {
+    return request.post('/quality/inspections', data);
+  },
+  getReworkOrders: (params?: any) => {
+    return request.get<any, PageResult<ReworkOrder>>('/quality/rework-orders', { params });
+  },
+  startRework: (id: string) => {
+    return request.post(`/quality/rework-orders/${id}/start`);
+  },
+  completeRework: (id: string) => {
+    return request.post(`/quality/rework-orders/${id}/complete`);
+  },
+  batchPrint: (batchIds: string[]) => {
+    return request.post('/quality/batches/batch-print', { batchIds });
+  }
+};
+
+export const ratingApi = {
+  getConfigs: () => {
+    return request.get<any, RatingConfig[]>('/rating/configs');
+  },
+  updateConfig: (id: string, data: any) => {
+    return request.put(`/rating/configs/${id}`, data);
+  },
+  getRatings: (params?: any) => {
+    return request.get<any, PageResult<SupplierRatingDetail>>('/rating/ratings', { params });
+  },
+  getRating: (id: string) => {
+    return request.get<any, SupplierRatingDetail>(`/rating/ratings/${id}`);
+  },
+  getSupplierRatings: (supplierId: string) => {
+    return request.get<any, SupplierRatingDetail[]>(`/rating/suppliers/${supplierId}/ratings`);
+  },
+  calculateRatings: (period?: string) => {
+    return request.post('/rating/ratings/calculate', { period });
+  },
+  getRectifications: (params?: any) => {
+    return request.get<any, PageResult<RectificationNotice>>('/rating/rectifications', { params });
+  },
+  getRectification: (id: string) => {
+    return request.get<any, RectificationNotice>(`/rating/rectifications/${id}`);
+  },
+  submitRectification: (id: string, responseContent: string) => {
+    return request.post(`/rating/rectifications/${id}/submit`, { responseContent });
+  },
+  verifyRectification: (id: string, pass: boolean, remark?: string) => {
+    return request.post(`/rating/rectifications/${id}/verify`, { pass, remark });
+  }
+};
+
+export const workorderApi = {
+  getWorkOrders: (params?: any) => {
+    return request.get<any, PageResult<MobileWorkOrder>>('/workorder/work-orders', { params });
+  },
+  getWorkOrder: (id: string) => {
+    return request.get<any, MobileWorkOrder>(`/workorder/work-orders/${id}`);
+  },
+  createWorkOrder: (data: any) => {
+    return request.post('/workorder/work-orders', data);
+  },
+  startWorkOrder: (id: string) => {
+    return request.post(`/workorder/work-orders/${id}/start`);
+  },
+  completeWorkOrder: (id: string, data: any) => {
+    return request.post(`/workorder/work-orders/${id}/complete`, data);
+  },
+  reportException: (id: string, data: any) => {
+    return request.post(`/workorder/work-orders/${id}/report-exception`, data);
+  },
+  getExceptions: (params?: any) => {
+    return request.get<any, PageResult<WorkOrderException>>('/workorder/exceptions', { params });
+  },
+  getException: (id: string) => {
+    return request.get<any, WorkOrderException>(`/workorder/exceptions/${id}`);
+  },
+  handleException: (id: string, data: any) => {
+    return request.post(`/workorder/exceptions/${id}/handle`, data);
+  },
+  resolveException: (id: string, resolution: string) => {
+    return request.post(`/workorder/exceptions/${id}/resolve`, { resolution });
+  },
+  getStats: () => {
+    return request.get<any, WorkOrderStats>('/workorder/stats/dashboard');
+  }
+};
+
+export const deductionApi = {
+  getRules: (params?: any) => {
+    return request.get<any, PageResult<DeductionRule>>('/deductions', { params });
+  },
+  getRule: (id: string) => {
+    return request.get<any, DeductionRule>(`/deductions/${id}`);
+  },
+  createRule: (data: any) => {
+    return request.post('/deductions', data);
+  },
+  updateRule: (id: string, data: any) => {
+    return request.put(`/deductions/${id}`, data);
+  },
+  calculate: (data: any) => {
+    return request.post('/deductions/calculate', data);
   }
 };

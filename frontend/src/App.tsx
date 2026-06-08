@@ -19,6 +19,17 @@ import SupplierDetail from './pages/suppliers/SupplierDetail';
 import PriceCompare from './pages/suppliers/PriceCompare';
 import OperationLogs from './pages/system/OperationLogs';
 import Notifications from './pages/system/Notifications';
+import QualityBatches from './pages/quality/QualityBatches';
+import QualityBatchDetail from './pages/quality/QualityBatchDetail';
+import QualityInspections from './pages/quality/QualityInspections';
+import RatingList from './pages/rating/RatingList';
+import RatingDetail from './pages/rating/RatingDetail';
+import RatingConfig from './pages/rating/RatingConfig';
+import RectificationList from './pages/rating/RectificationList';
+import WorkOrderList from './pages/workorder/WorkOrderList';
+import WorkOrderDetail from './pages/workorder/WorkOrderDetail';
+import ExceptionList from './pages/workorder/ExceptionList';
+import WorkOrderDashboard from './pages/workorder/WorkOrderDashboard';
 
 const AuthContext = createContext<any>(null);
 
@@ -69,6 +80,17 @@ function App() {
           <Route path="suppliers" element={<Suppliers />} />
           <Route path="suppliers/:id" element={<SupplierDetail />} />
           <Route path="suppliers/price-compare" element={<PriceCompare />} />
+          <Route path="quality/batches" element={<QualityBatches />} />
+          <Route path="quality/batches/:id" element={<QualityBatchDetail />} />
+          <Route path="quality/inspections" element={<QualityInspections />} />
+          <Route path="rating" element={<RatingList />} />
+          <Route path="rating/:id" element={<RatingDetail />} />
+          <Route path="rating/config" element={<RatingConfig />} />
+          <Route path="rating/rectifications" element={<RectificationList />} />
+          <Route path="workorder" element={<WorkOrderList />} />
+          <Route path="workorder/dashboard" element={<WorkOrderDashboard />} />
+          <Route path="workorder/:id" element={<WorkOrderDetail />} />
+          <Route path="workorder/exceptions" element={<ExceptionList />} />
           <Route path="system/logs" element={<OperationLogs />} />
           <Route path="system/notifications" element={<Notifications />} />
         </Route>

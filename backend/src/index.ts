@@ -10,6 +10,10 @@ import supplierRoutes from './routes/suppliers';
 import notificationRoutes from './routes/notifications';
 import logRoutes from './routes/logs';
 import dashboardRoutes from './routes/dashboard';
+import qualityRoutes from './routes/quality';
+import ratingRoutes from './routes/rating';
+import workorderRoutes from './routes/workorder';
+import deductionRoutes from './routes/deductions';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -38,6 +42,10 @@ app.use('/api/suppliers', supplierRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/quality', qualityRoutes);
+app.use('/api/rating', ratingRoutes);
+app.use('/api/workorder', workorderRoutes);
+app.use('/api/deductions', deductionRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({
