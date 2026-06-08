@@ -1,0 +1,26 @@
+{
+  "name": "manufacturing-supply-chain-platform",
+  "version": "1.0.0",
+  "description": "面向制造行业的零部件集采+外协加工协同平台",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build:backend": "npm run build -w backend",
+    "build:frontend": "npm run build -w frontend",
+    "start:backend": "npm run start -w backend",
+    "start:frontend": "npm run start -w frontend"
+  },
+  "keywords": [
+    "manufacturing",
+    "supply-chain",
+    "b2b",
+    "outsourcing"
+  ],
+  "author": "",
+  "license": "MIT"
+}
