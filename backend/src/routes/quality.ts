@@ -166,7 +166,7 @@ router.post('/batches', (req: AuthRequest, res) => {
 });
 
 router.get('/inspections', (req: AuthRequest, res) => {
-  const { page = 1, pageSize = 10, type, result, batchId, orderId } = req.query;
+  const { page = 1, pageSize = 10, type, result: inspectionResult, batchId, orderId } = req.query;
 
   let inspections = [...store.qualityInspections];
 
@@ -174,8 +174,8 @@ router.get('/inspections', (req: AuthRequest, res) => {
     inspections = inspections.filter(i => i.type === type);
   }
 
-  if (result) {
-    inspections = inspections.filter(i => i.result === result);
+  if (inspectionResult) {
+    inspections = inspections.filter(i => i.result === inspectionResult);
   }
 
   if (batchId) {
@@ -193,9 +193,9 @@ router.get('/inspections', (req: AuthRequest, res) => {
 
   inspections.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const result = paginate(inspections, Number(page), Number(pageSize));
+  const paginatedResult = paginate(inspections, Number(page), Number(pageSize));
 
-  res.json(success(result));
+  res.json(success(paginatedResult));
 });
 
 router.get('/inspections/:id', (req: AuthRequest, res) => {
@@ -248,6 +248,7 @@ router.post('/inspections', (req: AuthRequest, res) => {
     defectRate,
     defectItems: defectItems || [],
     disposition,
+    reworkOrderId: undefined as string | undefined,
     remark,
     attachments: attachments || [],
     createdAt: new Date().toISOString(),

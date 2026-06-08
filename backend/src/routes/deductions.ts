@@ -125,7 +125,7 @@ router.put('/:id', (req: AuthRequest, res) => {
 });
 
 router.post('/calculate', (req: AuthRequest, res) => {
-  if (req.user?.role !== 'demander' && req.user?.role !== 'admin' && req.user?.role !== 'finance') {
+  if (req.user?.role !== 'demander' && req.user?.role !== 'admin') {
     return res.status(403).json(error(403, '无权限计算扣款'));
   }
 

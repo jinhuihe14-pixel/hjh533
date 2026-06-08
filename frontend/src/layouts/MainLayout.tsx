@@ -12,7 +12,7 @@ import {
   UserOutlined,
   FileTextOutlined,
   HistoryOutlined,
-  QualityOutlined,
+  SafetyOutlined,
   StarOutlined,
   MobileOutlined
 } from '@ant-design/icons';
@@ -109,7 +109,7 @@ const MainLayout = () => {
     if (user?.role === 'demander' || user?.role === 'admin') {
       items.push({
         key: 'quality-group',
-        icon: <QualityOutlined />,
+        icon: <SafetyOutlined />,
         label: '质量管理',
         children: [
           { key: '/quality/batches', label: '批次管理' },
@@ -119,7 +119,7 @@ const MainLayout = () => {
     } else if (user?.role === 'factory' || user?.role === 'supplier') {
       items.push({
         key: '/quality/batches',
-        icon: <QualityOutlined />,
+        icon: <SafetyOutlined />,
         label: '质量追溯'
       });
     }
